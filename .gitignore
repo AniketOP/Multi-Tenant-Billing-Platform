@@ -1,0 +1,12 @@
+# Java / Maven
+billing/target/
+*.class
+
+# IDE
+.idea/
+*.iml
+out/
+
+# OS
+.DS_Store
+Thumbs.db
