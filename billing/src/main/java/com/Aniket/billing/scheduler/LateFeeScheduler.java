@@ -15,7 +15,7 @@ public class LateFeeScheduler {
     private final TenantService tenantService;
     private final InvoiceService invoiceService;
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 2 * * *")
     public void applyLateFee(){
         for(Tenant tenant : tenantService.getAllActiveTenants()){
             for(Invoice invoice : invoiceService.getOverDueInvoices(tenant.getId())){
