@@ -18,27 +18,36 @@ export default function Login() {
             const { token, tenantId, username: respUsername, role } = response.data;
             login(token, tenantId, respUsername, role);
             navigate("/dashboard");
-        } catch (err) {
+        } catch {
             setError("Invalid username or password");
         }
     }
 
     return (
-        <div style={{ maxWidth: 400, margin: "100px auto" }}>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
+        <div className="login-shell">
+            <div className="login-hero">
+                <div className="ledger-lines">
+                    {Array.from({ length: 14 }).map((_, i) => (
+                        <div key={i} style={{ top: `${(i + 1) * 44}px` }} />
+                    ))}
+                </div>
+                <h1>The record of<br />every unit,<br />settled.</h1>
+                <p>
+                    One ledger for every owner, invoice, and payment across your society —
+                    kept in balance automatically.
+                </p>
+            </div>
+            <div className="login-form-side">
+                <form className="login-card" onSubmit={handleSubmit}>
+                    <h2>Sign in</h2>
                     <label>Username</label>
                     <input value={username} onChange={(e) => setUsername(e.target.value)} />
-                </div>
-                <div>
                     <label>Password</label>
                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                <button type="submit">Log In</button>
-            </form>
+                    {error && <p className="error-text" style={{ marginTop: 16 }}>{error}</p>}
+                    <button type="submit">Sign in</button>
+                </form>
+            </div>
         </div>
     );
 }
-

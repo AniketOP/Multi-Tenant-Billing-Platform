@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import apiClient from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import AnimatedNumber from "../components/AnimatedNumber";
 
 interface Profile {
     id: string;
@@ -23,27 +24,39 @@ export default function Profiles() {
 
     async function handleCreate(e: React.FormEvent) {
         e.preventDefault();
-        await apiClient.post(`/tenants/${tenantId}/profiles`, { name, baseCharge: parseFloat(baseCharge) });
+        const res = await apiClient.post(`/tenants/${tenantId}/profiles`, { name, baseCharge: parseFloat(baseCharge) });
+        setProfiles(prev => [...prev, res.data]);
         setName(""); setBaseCharge("");
-        fetchProfiles();
     }
 
     return (
         <div>
-            <h2>Profiles</h2>
-            <form onSubmit={handleCreate} style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                <input placeholder="Name" value={name} onChange={e => setName(e.target.value)} required />
-                <input placeholder="Base Charge" type="number" value={baseCharge} onChange={e => setBaseCharge(e.target.value)} required />
-                <button type="submit">Add Profile</button>
+            <div className="page-header">
+                <h1>Billing profiles</h1>
+                <p>Rate plans units are linked to.</p>
+            </div>
+
+            <form className="ledger-form" onSubmit={handleCreate}>
+                <input className="field" placeholder="Name, e.g. Standard 2BHK" value={name} onChange={e => setName(e.target.value)} required />
+                <input className="field" placeholder="Base charge" type="number" value={baseCharge} onChange={e => setBaseCharge(e.target.value)} required />
+                <button className="btn btn-primary" type="submit">Add profile</button>
             </form>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead><tr><th>Name</th><th>Base Charge</th></tr></thead>
-                <tbody>
-                {profiles.map(p => (
-                    <tr key={p.id}><td>{p.name}</td><td>{p.baseCharge}</td></tr>
-                ))}
-                </tbody>
-            </table>
+
+            {profiles.length === 0 ? (
+                <p className="ledger-empty">No profiles yet — add the first one above.</p>
+            ) : (
+                <table className="ledger-table">
+                    <thead><tr><th>Name</th><th>Base charge</th></tr></thead>
+                    <tbody>
+                    {profiles.map(p => (
+                        <tr key={p.id}>
+                            <td>{p.name}</td>
+                            <td><AnimatedNumber value={p.baseCharge} prefix="₹" /></td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 }

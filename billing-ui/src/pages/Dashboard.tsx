@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import apiClient from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import AnimatedNumber from "../components/AnimatedNumber";
 
 interface Unit {
     id: string;
@@ -10,61 +10,78 @@ interface Unit {
     profileId: string | null;
 }
 
+interface Profile {
+    id: string;
+    name: string;
+}
+
 export default function Dashboard() {
-    const { tenantId, username, logout } = useAuth();
-    const navigate = useNavigate();
+    const { tenantId } = useAuth();
     const [units, setUnits] = useState<Unit[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [profiles, setProfiles] = useState<Profile[]>([]);
+    const [unitNumber, setUnitNumber] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
-        async function fetchUnits() {
-            try {
-                const response = await apiClient.get(`/tenants/${tenantId}/units`);
-                setUnits(response.data);
-            } catch (err) {
-                setError("Failed to load units");
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchUnits();
+        apiClient.get(`/tenants/${tenantId}/units`).then(res => setUnits(res.data)).catch(() => setError("Failed to load units"));
+        apiClient.get(`/tenants/${tenantId}/profiles`).then(res => setProfiles(res.data));
     }, [tenantId]);
 
-    function handleLogout() {
-        logout();
-        navigate("/login");
+    async function handleCreate(e: React.FormEvent) {
+        e.preventDefault();
+        const res = await apiClient.post(`/tenants/${tenantId}/units`, { unitNumber, active: true });
+        setUnits(prev => [...prev, res.data]);
+        setUnitNumber("");
     }
 
-    if (loading) return <p>Loading...</p>;
+    async function assignProfile(unit: Unit, profileId: string) {
+        const res = await apiClient.patch(`/tenants/${tenantId}/units/${unit.id}`, {
+            unitNumber: unit.unitNumber, active: unit.active, profileId,
+        });
+        setUnits(prev => prev.map(u => u.id === unit.id ? res.data : u));
+    }
+
+    const activeCount = units.filter(u => u.active).length;
 
     return (
-        <div style={{ maxWidth: 800, margin: "40px auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <h2>Welcome, {username}</h2>
-                <button onClick={handleLogout}>Log Out</button>
+        <div>
+            <div className="page-header">
+                <h1>Units</h1>
+                <p>Every apartment registered to this society.</p>
             </div>
 
-            <h3>Units</h3>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {units.length === 0 && !error && <p>No units yet.</p>}
+            <div className="stat-row">
+                <div className="stat"><div className="stat-value"><AnimatedNumber value={units.length} /></div><div className="stat-label">Total units</div></div>
+                <div className="stat"><div className="stat-value"><AnimatedNumber value={activeCount} /></div><div className="stat-label">Active</div></div>
+            </div>
 
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                <tr>
-                    <th style={{ textAlign: "left" }}>Unit Number</th>
-                    <th style={{ textAlign: "left" }}>Active</th>
-                </tr>
-                </thead>
-                <tbody>
-                {units.map((unit) => (
-                    <tr key={unit.id}>
-                        <td>{unit.unitNumber}</td>
-                        <td>{unit.active ? "Yes" : "No"}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
+            <form className="ledger-form" onSubmit={handleCreate}>
+                <input className="field" placeholder="Unit number, e.g. A-101" value={unitNumber} onChange={e => setUnitNumber(e.target.value)} required />
+                <button className="btn btn-primary" type="submit">Add unit</button>
+            </form>
+
+            {error && <p className="error-text">{error}</p>}
+            {units.length === 0 && !error ? (
+                <p className="ledger-empty">No units yet — add the first one above.</p>
+            ) : (
+                <table className="ledger-table">
+                    <thead><tr><th>Unit</th><th>Status</th><th>Billing profile</th></tr></thead>
+                    <tbody>
+                    {units.map(u => (
+                        <tr key={u.id}>
+                            <td>{u.unitNumber}</td>
+                            <td>{u.active ? "Active" : "Inactive"}</td>
+                            <td>
+                                <select className="field" value={u.profileId ?? ""} onChange={e => assignProfile(u, e.target.value)}>
+                                    <option value="">Unassigned</option>
+                                    {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 }
