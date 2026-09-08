@@ -2,6 +2,7 @@ package com.Aniket.billing.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -10,9 +11,11 @@ import java.util.Date;
 @Component
 public class JWTUtil {
 
-    private final SecretKey secretKey = Keys.hmacShaKeyFor(
-            "this-is-a-very-long-secret-key-for-hs256-signing-1234".getBytes()
-    );
+    private final SecretKey secretKey;
+
+    public JWTUtil(@Value("${jwt.secret}") String secret){
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(String username, String tenantId , String role){
         long EXPIRATION_MS = 1000 * 60 * 60 * 10;

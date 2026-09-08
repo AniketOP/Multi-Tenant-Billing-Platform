@@ -1,6 +1,7 @@
 package com.Aniket.billing.service;
 
 
+import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.Profile;
 import com.Aniket.billing.repository.ProfileRepository;
 import lombok.AllArgsConstructor;
@@ -30,10 +31,10 @@ public class ProfileService {
 
     public Profile getProfileById(String tenantId,String id){
         Profile profile = profileRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Profile Not Found:"+ id));
+                .orElseThrow(()-> new ResourceNotFoundException("Profile Not Found:"+ id));
 
         if(!profile.getTenantId().equals(tenantId)){
-            throw new RuntimeException("Profile not found: "+ id);
+            throw new ResourceNotFoundException("Profile not found: "+ id);
         }
         return profile;
     }

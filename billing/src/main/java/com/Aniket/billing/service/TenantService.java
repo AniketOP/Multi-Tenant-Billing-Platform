@@ -1,6 +1,8 @@
 package com.Aniket.billing.service;
 
 import java.util.UUID;
+
+import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.Tenant;
 import com.Aniket.billing.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +38,7 @@ public class TenantService {
 
     public Tenant getTenantById(String id){
         return tenantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tenant not found: "+ id));
+                .orElseThrow(() -> new ResourceNotFoundException("Tenant not found: "+ id));
     }
 
     public Tenant updateTenant(String id, Tenant updated){

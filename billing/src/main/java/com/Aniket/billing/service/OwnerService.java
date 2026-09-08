@@ -1,5 +1,6 @@
 package com.Aniket.billing.service;
 
+import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.Owner;
 import com.Aniket.billing.repository.OwnerRepository;
 import lombok.AllArgsConstructor;
@@ -31,10 +32,10 @@ public class OwnerService {
 
     public Owner getOwnerById(String tenantId ,String id){
         Owner owner =  ownerRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Owner Not Found:"+ id));
+                .orElseThrow(()-> new ResourceNotFoundException("Owner Not Found:"+ id));
 
         if(!owner.getTenantId().equals(tenantId)){
-            throw new RuntimeException("Owner not found: "+ id);
+            throw new ResourceNotFoundException("Owner not found: "+ id);
         }
         return owner;
     }
@@ -53,7 +54,7 @@ public class OwnerService {
                 .filter(o -> o.getTenantId().equals(tenantId))
                 .filter(o-> o.getUnitIds() != null && o.getUnitIds().contains(unitId))
                 .findFirst()
-                .orElseThrow(()-> new RuntimeException("No owner found for the unit: "+ unitId));
+                .orElseThrow(()-> new ResourceNotFoundException("No owner found for the unit: "+ unitId));
     }
 
     public void delete(String tenantId,String id){

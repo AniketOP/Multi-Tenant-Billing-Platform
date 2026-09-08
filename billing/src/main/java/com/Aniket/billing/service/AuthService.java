@@ -3,6 +3,7 @@ package com.Aniket.billing.service;
 import com.Aniket.billing.dto.AuthResponse;
 import com.Aniket.billing.dto.LoginRequest;
 import com.Aniket.billing.dto.SignupRequest;
+import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.User;
 import com.Aniket.billing.repository.UserRepository;
 import com.Aniket.billing.security.JWTUtil;
@@ -43,10 +44,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request){
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(()-> new RuntimeException("Invalid username or password"));
+                .orElseThrow(()-> new ResourceNotFoundException("Invalid username or password"));
 
         if(!passwordEncoder.matches(request.getPassword(),user.getPasswordHash())){
-            throw new RuntimeException("Invalid username or password");
+            throw new ResourceNotFoundException("Invalid username or password");
         }
 
         String token = jwtUtil.generateToken(user.getUsername(),user.getTenantId(), user.getRole());

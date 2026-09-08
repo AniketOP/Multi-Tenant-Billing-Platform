@@ -1,6 +1,7 @@
 package com.Aniket.billing.service;
 
 
+import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.*;
 import com.Aniket.billing.repository.InvoiceRepository;
 import lombok.AllArgsConstructor;
@@ -36,10 +37,10 @@ public class InvoiceService {
 
     public Invoice getInvoiceById(String tenantId,String id){
         Invoice invoice =  invoiceRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Invoice Not Found:"+ id));
+                .orElseThrow(()-> new ResourceNotFoundException("Invoice Not Found:"+ id));
 
         if(!invoice.getTenantId().equals(tenantId)){
-            throw new RuntimeException("Invoice not found:"+id);
+            throw new ResourceNotFoundException("Invoice not found:"+id);
         }
         return invoice;
     }
@@ -107,7 +108,7 @@ public class InvoiceService {
         Invoice previous = getLastInvoiceForUnit(tenantId, unitId);
 
         if (invoiceExistsForMonth(tenantId, unitId, billingMonth)) {
-            throw new RuntimeException("Invoice already exists for unit " + unitId + " for " + billingMonth);
+            throw new ResourceNotFoundException("Invoice already exists for unit " + unitId + " for " + billingMonth);
         }
 
         double openingBalance = (previous != null) ? previous.getClosingBalance() : 0.0;

@@ -1,5 +1,6 @@
 package com.Aniket.billing.service;
 
+import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.Unit;
 import com.Aniket.billing.repository.UnitRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +38,9 @@ public class UnitService {
 
     public Unit getUnitById(String tenantId, String id){
         Unit unit =  unitRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Unit not Found:" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Unit not Found:" + id));
         if (!unit.getTenantId().equals(tenantId)){
-            throw new RuntimeException("Unit not found: "+ id);
+            throw new ResourceNotFoundException("Unit not found: "+ id);
         }
         return unit;
     }

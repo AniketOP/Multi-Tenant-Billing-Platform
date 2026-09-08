@@ -1,5 +1,6 @@
 package com.Aniket.billing.service;
 
+import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.Payment;
 import com.Aniket.billing.repository.PaymentRepository;
 import lombok.AllArgsConstructor;
@@ -34,10 +35,10 @@ public class PaymentService {
 
     public Payment getOneById(String tenantId ,String id){
         Payment payment =  paymentRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Payment Not Found:"+id));
+                .orElseThrow(()-> new ResourceNotFoundException("Payment Not Found:"+id));
 
         if(!payment.getTenantId().equals(tenantId)){
-            throw new RuntimeException("Payment not found:"+ id);
+            throw new ResourceNotFoundException("Payment not found:"+ id);
         }
         return payment;
     }
