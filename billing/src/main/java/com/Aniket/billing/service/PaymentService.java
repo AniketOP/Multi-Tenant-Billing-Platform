@@ -18,6 +18,9 @@ public class PaymentService {
     private final InvoiceService invoiceService;
 
     public Payment createPayment(String tenantId ,Payment payment){
+
+        invoiceService.getInvoiceById(tenantId, payment.getInvoiceId());
+
         payment.setId("payment::"+ UUID.randomUUID());
         payment.setCreatedAt(Instant.now());
         payment.setTenantId(tenantId);

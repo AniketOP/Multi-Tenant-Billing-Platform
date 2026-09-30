@@ -108,7 +108,7 @@ public class InvoiceService {
         Invoice previous = getLastInvoiceForUnit(tenantId, unitId);
 
         if (invoiceExistsForMonth(tenantId, unitId, billingMonth)) {
-            throw new ResourceNotFoundException("Invoice already exists for unit " + unitId + " for " + billingMonth);
+            throw new IllegalStateException("Invoice already exists for unit " + unitId + " for " + billingMonth);
         }
 
         double openingBalance = (previous != null) ? previous.getClosingBalance() : 0.0;

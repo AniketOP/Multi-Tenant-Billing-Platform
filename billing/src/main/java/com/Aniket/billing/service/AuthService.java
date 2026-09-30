@@ -3,6 +3,7 @@ package com.Aniket.billing.service;
 import com.Aniket.billing.dto.AuthResponse;
 import com.Aniket.billing.dto.LoginRequest;
 import com.Aniket.billing.dto.SignupRequest;
+import com.Aniket.billing.exception.ForbiddenException;
 import com.Aniket.billing.exception.ResourceNotFoundException;
 import com.Aniket.billing.model.User;
 import com.Aniket.billing.repository.UserRepository;
@@ -22,9 +23,15 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
 
-    public AuthResponse signup(SignupRequest request){
-        if(userRepository.findByUsername(request.getUsername()).isPresent()){
-            throw new RuntimeException("Username already taken");
+    public AuthResponse signup(SignupRequest request, String callerRole, String callerTenantId){
+        boolean superAdmin = "SUPERADMIN".equals(callerRole);
+        boolean tenantAdmin = "ADMIN".equals(callerRole)
+                && callerTenantId != null
+                && callerTenantId.equals(request.getTenantId())
+                && !"SUPERADMIN".equals(request.getRole());
+
+        if(!superAdmin && !tenantAdmin){
+            throw new ForbiddenException("Not allowed to create this user");
         }
 
         User user = User.builder()

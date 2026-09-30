@@ -14,34 +14,35 @@ public class TenantGuard implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception
-    {
+            throws Exception {
 
-        if(!(handler instanceof HandlerMethod)){
+        if (!(handler instanceof HandlerMethod)) {
             return true;
         }
 
         String role = (String) request.getAttribute("role");
-        if("SUPERADMIN".equals(role)){
+        if ("SUPERADMIN".equals(role)) {
             return true;
         }
 
         @SuppressWarnings("unchecked")
-        Map<String,String> pathVars =
+        Map<String, String> pathVars =
                 (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 
         String urlTenantId = pathVars != null ? pathVars.get("tenantId") : null;
 
+
+        if (urlTenantId == null && pathVars != null && "GET".equals(request.getMethod())) {
+            urlTenantId = pathVars.get("id");
+        }
+
         String tokenTenantId = (String) request.getAttribute("tenantId");
 
-        if(urlTenantId == null || tokenTenantId == null || !urlTenantId.equals(tokenTenantId)){
+        if (urlTenantId == null || tokenTenantId == null || !urlTenantId.equals(tokenTenantId)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Tenant mismatch");
             return false;
         }
 
         return true;
-
-
     }
-
 }

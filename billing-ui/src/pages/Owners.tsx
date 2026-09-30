@@ -42,7 +42,7 @@ export default function Owners() {
     async function linkUnit(owner: Owner, unitId: string) {
         if (!unitId || owner.unitIds.includes(unitId)) return;
         const claimedBy = ownerOf(unitId);
-        if (claimedBy) return; // guarded in UI, dropdown already excludes these
+        if (claimedBy) return;
         const newUnitIds = [...owner.unitIds, unitId];
         const res = await apiClient.patch(`/tenants/${tenantId}/owners/${owner.id}`, {
             name: owner.name, email: owner.email, phone: owner.phone, unitIds: newUnitIds,

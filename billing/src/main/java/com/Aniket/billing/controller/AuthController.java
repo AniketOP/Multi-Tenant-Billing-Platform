@@ -6,10 +6,7 @@ import com.Aniket.billing.dto.SignupRequest;
 import com.Aniket.billing.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,8 +15,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signup (@RequestBody SignupRequest request){
-        return ResponseEntity.ok(authService.signup(request));
+    public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request,
+             @RequestAttribute(value = "role", required = false) String callerRole,
+             @RequestAttribute(value = "tenantId", required = false) String callerTenantId){
+        return ResponseEntity.ok(authService.signup(request, callerRole, callerTenantId));
     }
 
     @PostMapping("/login")

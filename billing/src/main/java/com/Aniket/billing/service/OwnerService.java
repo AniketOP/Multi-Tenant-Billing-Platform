@@ -21,6 +21,7 @@ public class OwnerService {
     public Owner createOwner(@RequestBody Owner owner){
         owner.setId("owner::"+ UUID.randomUUID());
         owner.setCreatedAt(Instant.now());
+        validateUnitsNotAssigned(owner.getTenantId(),owner.getUnitIds(), null);
         return ownerRepository.save(owner);
     }
 
@@ -42,11 +43,33 @@ public class OwnerService {
 
     public Owner update(String tenantId ,String id ,Owner updated){
         Owner existing = getOwnerById(tenantId,id);
+        validateUnitsNotAssigned(tenantId, updated.getUnitIds(), id);
         existing.setName(updated.getName());
         existing.setPhone(updated.getPhone());
         existing.setEmail(updated.getEmail());
         existing.setUnitIds(updated.getUnitIds());
         return ownerRepository.save(existing);
+    }
+
+    public void validateUnitsNotAssigned(String tenantId, List<String> unitIds , String excludingOwnerId){
+
+        if (unitIds == null || unitIds.isEmpty()) return ;
+
+        List<Owner> tenantOwners = ownerRepository.findAll().stream()
+                .filter(o -> o.getTenantId().equals(tenantId))
+                .filter(o -> excludingOwnerId == null || !o.getId().equals(excludingOwnerId))
+                .toList();
+        for(String unitId: unitIds){
+            tenantOwners.stream()
+                    .filter(o -> o.getUnitIds() != null && o.getUnitIds().contains(unitId))
+                    .findFirst()
+                    .ifPresent(conflictionOwner -> {
+                        throw new IllegalStateException(
+                                "Unit"+ unitId+ " is already assigned to owner "+ conflictionOwner.getId());
+                    });
+        }
+
+
     }
 
     public Owner findOwnerForUnit(String tenantId , String unitId){
