@@ -103,4 +103,56 @@ class TenantGuardTest {
         assertFalse(guard.preHandle(request, response, handler));
         assertEquals(403, response.getStatus());
     }
+
+    @Test
+    void getOwnTenantById_isAllowed() throws Exception {
+        request.setMethod("GET");
+        request.setAttribute("role", "ADMIN");
+        request.setAttribute("tenantId", T1);
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.of("id", T1));
+
+        assertTrue(guard.preHandle(request, response, handler));
+    }
+
+    @Test
+    void getOtherTenantById_returns403() throws Exception {
+        request.setMethod("GET");
+        request.setAttribute("role", "ADMIN");
+        request.setAttribute("tenantId", T1);
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.of("id", T2));
+
+        assertFalse(guard.preHandle(request, response, handler));
+        assertEquals(403, response.getStatus());
+    }
+
+    @Test
+    void patchOrDeleteOwnTenantById_returns403_forNonSuperadmin() throws Exception {
+        for (String method : new String[]{"PATCH", "DELETE"}) {
+            MockHttpServletRequest req = new MockHttpServletRequest();
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            req.setMethod(method);
+            req.setAttribute("role", "ADMIN");
+            req.setAttribute("tenantId", T1);
+            req.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.of("id", T1));
+
+            assertFalse(guard.preHandle(req, res, handler), method);
+            assertEquals(403, res.getStatus());
+        }
+    }
+
+    @Test
+    void listAllTenants_returns403_forNonSuperadmin_butAllowedForSuperadmin() throws Exception {
+        request.setMethod("GET");
+        request.setAttribute("role", "ADMIN");
+        request.setAttribute("tenantId", T1);
+        request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.of());
+
+        assertFalse(guard.preHandle(request, response, handler));
+        assertEquals(403, response.getStatus());
+
+        MockHttpServletRequest su = new MockHttpServletRequest();
+        su.setMethod("GET");
+        su.setAttribute("role", "SUPERADMIN");
+        assertTrue(guard.preHandle(su, new MockHttpServletResponse(), handler));
+    }
 }
