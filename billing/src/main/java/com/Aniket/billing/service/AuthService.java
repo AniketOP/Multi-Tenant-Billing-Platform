@@ -24,6 +24,8 @@ public class AuthService {
     private final JWTUtil jwtUtil;
 
     public AuthResponse signup(SignupRequest request, String callerRole, String callerTenantId){
+
+
         boolean superAdmin = "SUPERADMIN".equals(callerRole);
         boolean tenantAdmin = "ADMIN".equals(callerRole)
                 && callerTenantId != null
@@ -34,6 +36,12 @@ public class AuthService {
             throw new ForbiddenException("Not allowed to create this user");
         }
 
+
+        if(userRepository.findByUsername(request.getUsername()).isPresent()){
+            throw new RuntimeException("Username already taken");
+        }
+
+        // 3. create the user
         User user = User.builder()
                 .id("user::"+ UUID.randomUUID())
                 .tenantId(request.getTenantId())
@@ -45,7 +53,7 @@ public class AuthService {
 
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getUsername(),user.getTenantId(),user.getRole());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getTenantId(), user.getRole());
         return new AuthResponse(token, user.getUsername(), user.getRole(), user.getTenantId());
     }
 
@@ -53,13 +61,11 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(()-> new ResourceNotFoundException("Invalid username or password"));
 
-        if(!passwordEncoder.matches(request.getPassword(),user.getPasswordHash())){
+        if(!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())){
             throw new ResourceNotFoundException("Invalid username or password");
         }
 
-        String token = jwtUtil.generateToken(user.getUsername(),user.getTenantId(), user.getRole());
-        return new AuthResponse(token, user.getUsername(),user.getRole(),user.getTenantId());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getTenantId(), user.getRole());
+        return new AuthResponse(token, user.getUsername(), user.getRole(), user.getTenantId());
     }
-
-
 }
